@@ -47,3 +47,14 @@
 #sidebar #avatar {
   background: #ffe9e1;
 }
+
+/* 카테고리 3단계(세부) 목록 */
+.categories .third-categories {
+  list-style: none;
+  margin: 0.5rem 0 0;
+  padding-left: 1.75rem;
+
+  li {
+    padding: 0.2rem 0;
+  }
+}
