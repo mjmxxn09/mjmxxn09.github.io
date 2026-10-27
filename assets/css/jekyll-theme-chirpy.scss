@@ -1,0 +1,49 @@
+---
+---
+
+@use 'abstracts/variables' with (
+  $theme: '{{ site.theme_mode }}'
+);
+
+/* prettier-ignore */
+@use 'main
+{%- if jekyll.environment == 'production' -%}
+  .bundle
+{%- endif -%}
+';
+
+/* append your custom style below */
+
+/* 밍지로그 라이트 모드 컬러 */
+:root[data-bs-theme='light'],
+:root:not([data-bs-theme]) {
+  --main-bg: #fffdfb;
+  --sidebar-bg: #fff3ee;
+  --sidebar-border-color: #ffe3d8;
+  --sidebar-hover-bg: #ffe4da;
+  --sidebar-active-color: #e8735a;
+  --sidebar-muted-color: #8a6f66;
+  --sidebar-btn-bg: #ffffff;
+  --sidebar-btn-color: #e8a090;
+  --site-title-color: #e8735a;
+  --link-color: #e8735a;
+  --link-underline-color: #ffd3c4;
+  --heading-color: #3a2e2b;
+  --card-hover-bg: #fff3ee;
+  --topbar-bg: rgb(255 253 251 / 80%);
+  --main-border-color: #fbece6;
+  --avatar-border-color: #ffd3c4;
+}
+
+#sidebar .nav-item.active .nav-link {
+  background-color: #ffe4da;
+
+  i,
+  span {
+    color: #e8735a;
+  }
+}
+
+#sidebar #avatar {
+  background: #ffe9e1;
+}
