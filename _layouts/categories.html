@@ -1,0 +1,183 @@
+---
+layout: page
+# All the Categories of posts
+# 밍지로그: Chirpy 7.6 기본 레이아웃을 3단계(상위 > 하위 > 세부)까지 보이도록 수정한 버전
+# 순서는 _data/category_order.yml 을 따르고, 목록에 없는 카테고리는 가나다/알파벳순으로 뒤에 붙어요.
+---
+
+{% include lang.html %}
+
+{% assign HEAD_PREFIX = 'h_' %}
+{% assign LIST_PREFIX = 'l_' %}
+
+{% assign group_index = 0 %}
+
+{% assign post_measure_plural = site.data.locales[lang].categories.post_measure.plural | default: site.data.locales[lang].categories.post_measure %}
+{% assign post_measure_singular = site.data.locales[lang].categories.post_measure.singular | default: site.data.locales[lang].categories.post_measure %}
+{% assign ctg_measure_plural = site.data.locales[lang].categories.category_measure.plural | default: site.data.locales[lang].categories.category_measure %}
+{% assign ctg_measure_singular = site.data.locales[lang].categories.category_measure.singular | default: site.data.locales[lang].categories.category_measure %}
+
+{% assign category_order = site.data.category_order %}
+
+<!-- 1단계: 상위 카테고리 모으기 -->
+{% assign top_categories = '' | split: '' %}
+{% for post in site.posts %}
+  {% assign c0 = post.categories[0] %}
+  {% if c0 %}
+    {% unless top_categories contains c0 %}
+      {% assign top_categories = top_categories | push: c0 %}
+    {% endunless %}
+  {% endif %}
+{% endfor %}
+
+{% assign ordered = '' | split: '' %}
+{% for name in category_order %}
+  {% if top_categories contains name %}
+    {% assign ordered = ordered | push: name %}
+  {% endif %}
+{% endfor %}
+{% assign rest = top_categories | sort %}
+{% for name in rest %}
+  {% unless ordered contains name %}
+    {% assign ordered = ordered | push: name %}
+  {% endunless %}
+{% endfor %}
+{% assign top_categories = ordered %}
+
+{% for category_name in top_categories %}
+  <!-- 2단계: 이 상위 카테고리의 하위 카테고리 -->
+  {% assign sub_categories = '' | split: '' %}
+  {% for post in site.posts %}
+    {% if post.categories[0] == category_name and post.categories[1] %}
+      {% unless sub_categories contains post.categories[1] %}
+        {% assign sub_categories = sub_categories | push: post.categories[1] %}
+      {% endunless %}
+    {% endif %}
+  {% endfor %}
+
+  {% assign ordered = '' | split: '' %}
+  {% for name in category_order %}
+    {% if sub_categories contains name %}
+      {% assign ordered = ordered | push: name %}
+    {% endif %}
+  {% endfor %}
+  {% assign rest = sub_categories | sort %}
+  {% for name in rest %}
+    {% unless ordered contains name %}
+      {% assign ordered = ordered | push: name %}
+    {% endunless %}
+  {% endfor %}
+  {% assign sub_categories = ordered %}
+  {% assign sub_categories_size = sub_categories | size %}
+
+  <div class="card categories">
+    <!-- top-category -->
+    <div
+      id="{{ HEAD_PREFIX }}{{ group_index }}"
+      class="card-header d-flex justify-content-between hide-border-bottom"
+    >
+      <span class="ms-2">
+        <i class="far fa-folder{% if sub_categories_size > 0 %}-open{% endif %} fa-fw"></i>
+
+        {% capture _category_url %}/categories/{{ category_name | slugify | url_encode }}/{% endcapture %}
+        <a href="{{ _category_url | relative_url }}" class="mx-2">{{ category_name }}</a>
+
+        {% assign top_posts_size = site.categories[category_name] | size %}
+        <span class="text-muted small font-weight-light">
+          {% if sub_categories_size > 0 %}
+            {{ sub_categories_size }}
+            {% if sub_categories_size > 1 %}{{ ctg_measure_plural }}{% else %}{{ ctg_measure_singular }}{% endif %},
+          {% endif %}
+          {{ top_posts_size }}
+          {% if top_posts_size > 1 %}{{ post_measure_plural }}{% else %}{{ post_measure_singular }}{% endif %}
+        </span>
+      </span>
+
+      <!-- arrow -->
+      {% if sub_categories_size > 0 %}
+        <a
+          href="#{{ LIST_PREFIX }}{{ group_index }}"
+          data-bs-toggle="collapse"
+          aria-expanded="true"
+          aria-label="{{ HEAD_PREFIX }}{{ group_index }}-trigger"
+          class="category-trigger hide-border-bottom"
+        >
+          <i class="fas fa-fw fa-angle-down"></i>
+        </a>
+      {% else %}
+        <span data-bs-toggle="collapse" class="category-trigger hide-border-bottom disabled">
+          <i class="fas fa-fw fa-angle-right"></i>
+        </span>
+      {% endif %}
+    </div>
+    <!-- .card-header -->
+
+    {% if sub_categories_size > 0 %}
+      <div id="{{ LIST_PREFIX }}{{ group_index }}" class="collapse show" aria-expanded="true">
+        <ul class="list-group">
+          {% for sub_category in sub_categories %}
+            <!-- 3단계: 이 하위 카테고리의 세부 카테고리 -->
+            {% assign third_categories = '' | split: '' %}
+            {% for post in site.posts %}
+              {% if post.categories[0] == category_name and post.categories[1] == sub_category and post.categories[2] %}
+                {% unless third_categories contains post.categories[2] %}
+                  {% assign third_categories = third_categories | push: post.categories[2] %}
+                {% endunless %}
+              {% endif %}
+            {% endfor %}
+
+            {% assign ordered = '' | split: '' %}
+            {% for name in category_order %}
+              {% if third_categories contains name %}
+                {% assign ordered = ordered | push: name %}
+              {% endif %}
+            {% endfor %}
+            {% assign rest = third_categories | sort %}
+            {% for name in rest %}
+              {% unless ordered contains name %}
+                {% assign ordered = ordered | push: name %}
+              {% endunless %}
+            {% endfor %}
+            {% assign third_categories = ordered %}
+            {% assign third_size = third_categories | size %}
+
+            <li class="list-group-item">
+              <i class="far fa-folder{% if third_size > 0 %}-open{% endif %} fa-fw"></i>
+
+              {% capture _sub_ctg_url %}/categories/{{ sub_category | slugify | url_encode }}/{% endcapture %}
+              <a href="{{ _sub_ctg_url | relative_url }}" class="mx-2">{{ sub_category }}</a>
+
+              {% assign posts_size = site.categories[sub_category] | size %}
+              <span class="text-muted small font-weight-light">
+                {{ posts_size }}
+                {% if posts_size > 1 %}{{ post_measure_plural }}{% else %}{{ post_measure_singular }}{% endif %}
+              </span>
+
+              {% if third_size > 0 %}
+                <ul class="third-categories">
+                  {% for third_category in third_categories %}
+                    <li>
+                      <i class="far fa-file-lines fa-fw"></i>
+
+                      {% capture _third_ctg_url %}/categories/{{ third_category | slugify | url_encode }}/{% endcapture %}
+                      <a href="{{ _third_ctg_url | relative_url }}" class="mx-2">{{ third_category }}</a>
+
+                      {% assign third_posts_size = site.categories[third_category] | size %}
+                      <span class="text-muted small font-weight-light">
+                        {{ third_posts_size }}
+                        {% if third_posts_size > 1 %}{{ post_measure_plural }}{% else %}{{ post_measure_singular }}{% endif %}
+                      </span>
+                    </li>
+                  {% endfor %}
+                </ul>
+              {% endif %}
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
+    {% endif %}
+  </div>
+  <!-- .card -->
+
+  {% assign group_index = group_index | plus: 1 %}
+{% endfor %}
